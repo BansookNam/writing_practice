@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Writing Practice Generator</title>
+  <link rel="icon" type="image/png" href="favicon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <style>
@@ -11,26 +12,17 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #f5f5f5;
-      color: #333;
-      min-height: 100vh;
-      display: flex;
+      background: #f5f5f5; color: #333; min-height: 100vh; display: flex;
     }
 
     /* ── Sidebar ── */
     #sidebar {
-      width: 300px;
-      min-width: 300px;
-      background: #fff;
-      border-right: 1px solid #ddd;
+      width: 300px; min-width: 300px;
+      background: #fff; border-right: 1px solid #ddd;
       padding: 24px 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      height: 100vh;
-      overflow-y: auto;
-      position: sticky;
-      top: 0;
+      display: flex; flex-direction: column; gap: 20px;
+      height: 100vh; overflow-y: auto;
+      position: sticky; top: 0;
     }
 
     h1 { font-size: 18px; font-weight: 700; color: #111; }
@@ -38,138 +30,135 @@
     .field { display: flex; flex-direction: column; gap: 6px; }
 
     label {
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: #666;
+      font-size: 12px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.05em; color: #666;
     }
 
     select, textarea, input[type="text"], input[type="number"] {
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      padding: 8px 10px;
-      font-size: 14px;
-      background: #fafafa;
-      color: #333;
-      transition: border-color 0.15s;
-      font-family: inherit;
+      border: 1px solid #ddd; border-radius: 6px;
+      padding: 8px 10px; font-size: 14px;
+      background: #fafafa; color: #333;
+      transition: border-color 0.15s; font-family: inherit;
     }
     select:focus, textarea:focus, input:focus {
       outline: none; border-color: #4f80ff; background: #fff;
     }
-
     textarea { resize: vertical; min-height: 120px; line-height: 1.5; }
 
     .color-row { display: flex; align-items: center; gap: 10px; }
-
     input[type="color"] {
-      width: 40px; height: 36px;
-      border: 1px solid #ddd; border-radius: 6px;
+      width: 40px; height: 36px; border: 1px solid #ddd; border-radius: 6px;
       padding: 2px; cursor: pointer; background: #fafafa;
     }
-
     input[type="range"] { flex: 1; accent-color: #4f80ff; }
-
     #alpha-value { font-size: 12px; color: #555; min-width: 32px; text-align: right; }
 
     .field-group { display: flex; flex-direction: column; gap: 8px; }
-
     .size-row { display: flex; gap: 10px; }
     .size-row .field { flex: 1; }
     .size-row input[type="number"] { width: 100%; }
 
-    /* Font row: select + manage button */
+    /* ── Custom font dropdown ── */
     .font-row { display: flex; gap: 6px; align-items: stretch; }
-    .font-row select { flex: 1; min-width: 0; }
+    #font-dropdown { flex: 1; min-width: 0; position: relative; }
+
+    #font-dropdown-btn {
+      width: 100%; display: flex; justify-content: space-between; align-items: center;
+      gap: 6px; padding: 8px 10px;
+      border: 1px solid #ddd; border-radius: 6px;
+      background: #fafafa; cursor: pointer;
+      text-align: left; transition: border-color 0.15s;
+    }
+    #font-dropdown-btn:hover, #font-dropdown-btn.open { border-color: #4f80ff; background: #fff; }
+
+    #font-dropdown-label {
+      flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis;
+      white-space: nowrap; font-size: 17px; color: #222;
+    }
+    #font-dropdown-arrow { font-size: 10px; color: #999; flex-shrink: 0; transition: transform 0.15s; }
+    #font-dropdown-btn.open #font-dropdown-arrow { transform: rotate(180deg); }
+
+    #font-dropdown-menu {
+      position: fixed;
+      background: #fff; border: 1px solid #ddd; border-radius: 8px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.13);
+      max-height: 280px; overflow-y: auto;
+      z-index: 600; display: none;
+      min-width: 180px;
+    }
+    #font-dropdown-menu.open { display: block; }
+
+    .fd-option {
+      padding: 9px 14px; cursor: pointer; font-size: 18px; color: #222;
+      border-bottom: 1px solid #f5f5f5;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      transition: background 0.1s;
+    }
+    .fd-option:last-child { border-bottom: none; }
+    .fd-option:hover { background: #f0f4ff; }
+    .fd-option.selected { background: #eef1ff; color: #4f80ff; }
 
     #btn-manage-fonts {
-      padding: 0 10px;
-      background: #f0f4ff;
-      color: #4f80ff;
-      border: 1px solid #c5d3ff;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: background 0.15s;
+      padding: 0 10px; background: #f0f4ff; color: #4f80ff;
+      border: 1px solid #c5d3ff; border-radius: 6px;
+      font-size: 12px; font-weight: 600; cursor: pointer;
+      white-space: nowrap; transition: background 0.15s; flex-shrink: 0;
     }
     #btn-manage-fonts:hover { background: #dce6ff; }
 
     #btn-print {
-      margin-top: auto;
-      padding: 12px;
-      background: #4f80ff;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.15s;
+      margin-top: auto; padding: 12px;
+      background: #4f80ff; color: #fff; border: none; border-radius: 8px;
+      font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.15s;
     }
     #btn-print:hover { background: #3a6aee; }
 
     /* ── Preview area ── */
     #preview-area {
-      flex: 1;
-      padding: 32px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      overflow-y: auto;
+      flex: 1; padding: 32px;
+      display: flex; flex-direction: column; align-items: center; overflow-y: auto;
     }
-
     #preview-label {
-      font-size: 11px; font-weight: 600;
-      text-transform: uppercase; letter-spacing: 0.08em;
-      color: #aaa; margin-bottom: 16px; align-self: flex-start;
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.08em; color: #aaa; margin-bottom: 16px; align-self: flex-start;
     }
 
     .paper-page {
-      background: #fff;
-      width: 794px; height: 1123px;
+      background: #fff; width: 794px; height: 1123px;
       padding: 48px 60px 40px;
       box-shadow: 0 4px 24px rgba(0,0,0,0.12);
       border-radius: 4px; margin-bottom: 32px;
-      display: flex; flex-direction: column;
-      overflow: hidden;
+      display: flex; flex-direction: column; overflow: hidden;
     }
-
     .paper-content { flex: 1; overflow: hidden; }
-
     .page-number {
       text-align: center; font-size: 11px; color: #aaa;
       padding-top: 8px; letter-spacing: 0.05em; flex-shrink: 0;
     }
 
-    /* ── English lined rows ── */
-    .en-row { position: relative; margin-bottom: 8px; }
-    .en-lines { position: relative; width: 100%; }
+    /* ── English lines ── */
+    .en-row { position: relative; }
+    .en-lines { position: relative; width: 100%; overflow: visible; }
     .en-guide-text {
-      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-      display: flex; align-items: center; padding: 0 4px;
-      white-space: pre; overflow: hidden;
-      pointer-events: none; z-index: 2;
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 0 4px; line-height: 1;
+      white-space: pre; overflow: visible; pointer-events: none; z-index: 2;
     }
 
-    /* ── Korean grid rows ── */
+    /* ── Korean grid ── */
     .ko-row {
       display: flex; flex-wrap: nowrap; margin-bottom: 4px;
-      border-top: 1.5px solid #e53935;
-      border-left: 1.5px solid #e53935;
+      border-top: 1.5px solid #e53935; border-left: 1.5px solid #e53935;
     }
     .ko-cell {
       position: relative;
-      border-right: 1.5px solid #e53935;
-      border-bottom: 1.5px solid #e53935;
+      border-right: 1.5px solid #e53935; border-bottom: 1.5px solid #e53935;
       display: flex; align-items: center; justify-content: center;
       overflow: hidden; flex-shrink: 0;
     }
     .ko-cell::before, .ko-cell::after {
       content: ''; position: absolute;
-      background: rgba(229, 57, 53, 0.25); pointer-events: none;
+      background: rgba(229,57,53,0.25); pointer-events: none;
     }
     .ko-cell::before { width: 1px; top: 0; bottom: 0; left: 50%; transform: translateX(-50%); }
     .ko-cell::after  { height: 1px; left: 0; right: 0; top: 50%; transform: translateY(-50%); }
@@ -177,72 +166,51 @@
 
     /* ── Font Manager Modal ── */
     #font-modal-overlay {
-      display: none;
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.45);
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45); z-index: 1000;
+      align-items: center; justify-content: center;
     }
     #font-modal-overlay.open { display: flex; }
 
     #font-modal {
-      background: #fff;
-      border-radius: 12px;
-      width: 860px;
-      max-width: 96vw;
-      height: 640px;
-      max-height: 92vh;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
+      background: #fff; border-radius: 12px;
+      width: 860px; max-width: 96vw; height: 640px; max-height: 92vh;
+      display: flex; flex-direction: column; overflow: hidden;
       box-shadow: 0 20px 60px rgba(0,0,0,0.25);
     }
 
     #fm-header {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 16px 20px;
-      border-bottom: 1px solid #eee;
-      flex-shrink: 0;
+      padding: 16px 20px; border-bottom: 1px solid #eee; flex-shrink: 0;
     }
     #fm-header h2 { font-size: 16px; font-weight: 700; }
 
     #fm-locale-tabs { display: flex; gap: 4px; }
     .fm-tab {
-      padding: 5px 14px;
-      border-radius: 20px;
-      font-size: 13px; font-weight: 600;
-      border: 1.5px solid #ddd;
-      background: #fff; cursor: pointer; color: #666;
-      transition: all 0.15s;
+      padding: 5px 14px; border-radius: 20px;
+      font-size: 13px; font-weight: 600; border: 1.5px solid #ddd;
+      background: #fff; cursor: pointer; color: #666; transition: all 0.15s;
     }
     .fm-tab.active { background: #4f80ff; border-color: #4f80ff; color: #fff; }
 
     #fm-close {
-      width: 28px; height: 28px;
-      border-radius: 50%; border: none;
-      background: #f0f0f0; font-size: 16px;
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px; border-radius: 50%; border: none;
+      background: #f0f0f0; font-size: 16px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
       color: #555; transition: background 0.15s;
     }
     #fm-close:hover { background: #e0e0e0; }
 
-    #fm-body {
-      display: flex; flex: 1; overflow: hidden;
-    }
+    #fm-body { display: flex; flex: 1; overflow: hidden; }
 
     /* Left: Search */
     #fm-left {
       width: 420px; min-width: 420px;
       border-right: 1px solid #eee;
-      display: flex; flex-direction: column;
-      padding: 16px;
-      gap: 10px;
+      display: flex; flex-direction: column; padding: 16px; gap: 10px;
     }
 
-    #fm-preview-input-row {
-      display: flex; gap: 8px; align-items: center;
-    }
+    #fm-preview-input-row { display: flex; gap: 8px; align-items: center; }
     #fm-preview-input-row label { font-size: 11px; color: #888; white-space: nowrap; }
     #fm-preview-text { flex: 1; font-size: 13px; }
 
@@ -254,16 +222,11 @@
     }
     #fm-search-clear:hover { background: #eee; }
 
-    #fm-results {
-      flex: 1; overflow-y: auto;
-      border: 1px solid #eee; border-radius: 8px;
-    }
+    #fm-results { flex: 1; overflow-y: auto; border: 1px solid #eee; border-radius: 8px; }
 
     .fm-result-item {
       display: flex; align-items: center; gap: 10px;
-      padding: 10px 12px;
-      border-bottom: 1px solid #f0f0f0;
-      transition: background 0.1s;
+      padding: 10px 12px; border-bottom: 1px solid #f0f0f0; transition: background 0.1s;
     }
     .fm-result-item:last-child { border-bottom: none; }
     .fm-result-item:hover { background: #fafafa; }
@@ -272,35 +235,32 @@
     .fm-result-name { font-size: 12px; font-weight: 600; color: #555; margin-bottom: 3px; }
     .fm-result-preview {
       font-size: 20px; line-height: 1.3;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      color: #222;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #222;
     }
 
     .fm-add-btn {
-      padding: 5px 10px;
-      background: #eef2ff; color: #4f80ff;
+      padding: 5px 10px; background: #eef2ff; color: #4f80ff;
       border: 1.5px solid #c5d3ff; border-radius: 6px;
       font-size: 12px; font-weight: 700; cursor: pointer;
-      white-space: nowrap; transition: background 0.15s;
-      flex-shrink: 0;
+      white-space: nowrap; transition: background 0.15s; flex-shrink: 0;
     }
     .fm-add-btn:hover { background: #dce6ff; }
     .fm-add-btn.added { background: #e8f5e9; color: #388e3c; border-color: #a5d6a7; cursor: default; }
 
-    .fm-no-results {
-      padding: 32px; text-align: center; color: #aaa; font-size: 13px;
-    }
+    .fm-no-results { padding: 32px; text-align: center; color: #aaa; font-size: 13px; }
 
-    /* Right: Current list */
+    /* Right: Font list */
     #fm-right {
       flex: 1; display: flex; flex-direction: column;
       padding: 16px; gap: 10px; overflow: hidden;
     }
-
     #fm-right-header {
       display: flex; align-items: center; justify-content: space-between;
     }
-    #fm-right-header span { font-size: 12px; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 0.05em; }
+    #fm-right-header span {
+      font-size: 12px; font-weight: 700; color: #666;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
     #fm-right-hint { font-size: 11px; color: #bbb; }
 
     #fm-list {
@@ -308,65 +268,86 @@
       border: 1px solid #eee; border-radius: 8px;
     }
 
+    /* ── List item with drag handle ── */
     .fm-list-item {
-      display: flex; align-items: center; gap: 8px;
-      padding: 8px 10px;
-      border-bottom: 1px solid #f0f0f0;
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-bottom: 1px solid #f0f0f0;
+      cursor: context-menu;
       transition: background 0.1s;
+      user-select: none;
     }
     .fm-list-item:last-child { border-bottom: none; }
     .fm-list-item:hover { background: #fafafa; }
+    .fm-list-item.drag-over { background: #eef2ff; border-top: 2px solid #4f80ff; }
+    .fm-list-item.dragging { opacity: 0.4; }
 
-    .fm-order-btns { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
-    .fm-order-btn {
-      width: 20px; height: 18px;
-      border: 1px solid #ddd; border-radius: 3px;
-      background: #f5f5f5; cursor: pointer; font-size: 10px;
-      display: flex; align-items: center; justify-content: center;
-      color: #666; transition: background 0.1s;
+    .drag-handle {
+      cursor: grab; color: #ccc; font-size: 16px;
+      display: flex; flex-direction: column; gap: 2px;
+      padding: 2px 4px; flex-shrink: 0;
+      transition: color 0.1s;
     }
-    .fm-order-btn:hover:not(:disabled) { background: #e0e8ff; color: #4f80ff; border-color: #c5d3ff; }
-    .fm-order-btn:disabled { opacity: 0.3; cursor: default; }
+    .drag-handle:hover { color: #999; }
+    .drag-handle:active { cursor: grabbing; }
+    /* Two rows of dots */
+    .drag-handle::before, .drag-handle::after {
+      content: '⠿'; line-height: 1;
+    }
+    .drag-handle::after { display: none; }
 
     .fm-list-info { flex: 1; min-width: 0; }
-    .fm-list-name { font-size: 11px; color: #888; margin-bottom: 2px; }
-    .fm-list-preview {
-      font-size: 18px; line-height: 1.3;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      color: #222;
-    }
+    .fm-list-name { font-size: 11px; color: #aaa; margin-bottom: 2px; }
     .fm-list-item:first-child .fm-list-name::after {
-      content: ' ★ default';
-      color: #f9a825; font-size: 10px;
+      content: ' ★ default'; color: #f9a825; font-size: 10px;
     }
-
-    .fm-remove-btn {
-      width: 22px; height: 22px;
-      border-radius: 50%; border: none;
-      background: #fee; color: #e53935;
-      font-size: 14px; cursor: pointer; font-weight: 700;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0; transition: background 0.1s;
+    .fm-list-preview {
+      font-size: 22px; line-height: 1.3;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #222;
     }
-    .fm-remove-btn:hover { background: #fcc; }
 
     #fm-empty-hint {
-      padding: 32px; text-align: center; color: #bbb; font-size: 13px;
-      display: none;
+      padding: 32px; text-align: center; color: #bbb; font-size: 13px; display: none;
     }
 
-    /* ── Print styles ── */
+    /* ── Right-click context menu ── */
+    #ctx-menu {
+      position: fixed; z-index: 2000;
+      background: #fff; border: 1px solid #e0e0e0;
+      border-radius: 8px; padding: 4px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      display: none; min-width: 160px;
+    }
+    #ctx-menu.open { display: block; }
+
+    .ctx-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px; border-radius: 6px;
+      font-size: 13px; cursor: pointer;
+      transition: background 0.1s;
+    }
+    .ctx-item:hover { background: #fff0f0; color: #e53935; }
+    .ctx-item-icon { font-size: 14px; }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(12px);
+      background: #333; color: #fff; border-radius: 24px;
+      padding: 10px 20px; font-size: 13px; font-weight: 500;
+      pointer-events: none; opacity: 0;
+      transition: opacity 0.2s, transform 0.2s;
+      z-index: 3000; white-space: nowrap;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── Print ── */
     @media print {
       body { background: #fff; }
-      #sidebar { display: none !important; }
-      #font-modal-overlay { display: none !important; }
+      #sidebar, #font-modal-overlay, #ctx-menu, #toast { display: none !important; }
       #preview-area { padding: 0; overflow: visible; }
       #preview-label { display: none; }
       .paper-page {
-        width: 100%; height: 100vh;
-        padding: 15mm 15mm 10mm;
-        box-shadow: none; border-radius: 0;
-        margin-bottom: 0; page-break-after: always;
+        width: 100%; height: 100vh; padding: 15mm 15mm 10mm;
+        box-shadow: none; border-radius: 0; margin-bottom: 0; page-break-after: always;
       }
       .paper-page:last-child { page-break-after: avoid; }
     }
@@ -389,7 +370,13 @@
   <div class="field">
     <label>Font</label>
     <div class="font-row">
-      <select id="font-select"></select>
+      <div id="font-dropdown">
+        <button id="font-dropdown-btn" type="button">
+          <span id="font-dropdown-label">—</span>
+          <span id="font-dropdown-arrow">▾</span>
+        </button>
+        <div id="font-dropdown-menu"></div>
+      </div>
       <button id="btn-manage-fonts">⚙ Manage</button>
     </div>
   </div>
@@ -427,6 +414,20 @@
     <input type="number" id="repeat-rows" value="2" min="1" max="10" />
   </div>
 
+  <div class="field-group">
+    <label>Text Offset</label>
+    <div class="size-row">
+      <div class="field">
+        <label style="font-size:11px">Y-offset (px)</label>
+        <input type="number" id="text-y-offset" value="0" min="-40" max="40" />
+      </div>
+      <div class="field">
+        <label style="font-size:11px">Font size (px)</label>
+        <input type="number" id="text-font-size" value="" min="8" max="200" placeholder="auto" />
+      </div>
+    </div>
+  </div>
+
   <button id="btn-print">🖨️ Print / Save as PDF</button>
 </div>
 
@@ -448,7 +449,6 @@
       <button id="fm-close">✕</button>
     </div>
     <div id="fm-body">
-      <!-- Search side -->
       <div id="fm-left">
         <div id="fm-preview-input-row">
           <label>Preview:</label>
@@ -460,11 +460,10 @@
         </div>
         <div id="fm-results"></div>
       </div>
-      <!-- Current list side -->
       <div id="fm-right">
         <div id="fm-right-header">
           <span>Your Fonts</span>
-          <span id="fm-right-hint">First font is the default</span>
+          <span id="fm-right-hint">First font is default · right-click to delete</span>
         </div>
         <div id="fm-list"></div>
         <div id="fm-empty-hint">No fonts yet — search and add fonts on the left.</div>
@@ -473,10 +472,20 @@
   </div>
 </div>
 
+<!-- ── Context menu ── -->
+<div id="ctx-menu">
+  <div class="ctx-item" id="ctx-delete">
+    <span class="ctx-item-icon">🗑</span> Delete font
+  </div>
+</div>
+
+<!-- ── Toast ── -->
+<div id="toast"></div>
+
 <script>
   const $ = id => document.getElementById(id);
 
-  // ── Google Fonts catalog ──────────────────────────────────────────────────
+  // ── Google Fonts catalog ─────────────────────────────────────────────────
   const GF_CATALOG = {
     en: [
       'Caveat','Patrick Hand','Kalam','Architects Daughter','Schoolbell','Comic Neue',
@@ -500,146 +509,164 @@
     ],
   };
 
-  // Generic fallback stacks per locale
-  const STACK = {
-    en: ', cursive',
-    ko: ', sans-serif',
-  };
+  const STACK = { en: ', cursive', ko: ', sans-serif' };
+  const fontFamily = (name, locale) => `'${name}'${STACK[locale] || ', sans-serif'}`;
 
-  function fontFamily(name, locale) {
-    return `'${name}'${STACK[locale] || ', sans-serif'}`;
-  }
-
-  // ── Font loading ─────────────────────────────────────────────────────────
+  // ── Google Font loader ────────────────────────────────────────────────────
   const loadedFonts = new Set();
-  // Pre-load initial link tag fonts
-  document.querySelectorAll('link[data-gf]').forEach(l => loadedFonts.add(l.dataset.gf));
-
   function loadGoogleFont(name) {
     if (loadedFonts.has(name)) return;
     loadedFonts.add(name);
     const link = document.createElement('link');
     link.rel = 'stylesheet';
-    link.dataset.gf = name;
     link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(name)}&display=swap`;
     document.head.appendChild(link);
   }
 
-  // ── localStorage ─────────────────────────────────────────────────────────
-  const LS = locale => `wp_fonts_${locale}`;
-
+  // ── localStorage ──────────────────────────────────────────────────────────
+  const LS = loc => `wp_fonts_${loc}`;
   const DEFAULT_FONTS = {
     en: ['Caveat','Patrick Hand','Kalam','Architects Daughter','Schoolbell','Comic Neue'],
     ko: ['Nanum Pen Script','Gamja Flower','Cute Font','Do Hyeon','Noto Sans KR'],
   };
 
-  function loadUserFonts(locale) {
-    try {
-      const raw = localStorage.getItem(LS(locale));
-      if (raw) return JSON.parse(raw);
-    } catch {}
-    return [...DEFAULT_FONTS[locale]];
+  function loadUserFonts(loc) {
+    try { const r = localStorage.getItem(LS(loc)); if (r) return JSON.parse(r); } catch {}
+    return [...DEFAULT_FONTS[loc]];
   }
+  function saveUserFonts(loc, list) { localStorage.setItem(LS(loc), JSON.stringify(list)); }
 
-  function saveUserFonts(locale, list) {
-    localStorage.setItem(LS(locale), JSON.stringify(list));
-  }
+  const userFonts = { en: loadUserFonts('en'), ko: loadUserFonts('ko') };
+  ['en','ko'].forEach(l => userFonts[l].forEach(loadGoogleFont));
 
-  // userFonts[locale] = ['Font Name', ...]
-  const userFonts = {
-    en: loadUserFonts('en'),
-    ko: loadUserFonts('ko'),
-  };
+  // ── State ─────────────────────────────────────────────────────────────────
+  let currentFont = '';   // full CSS font-family string
 
-  // Pre-load all user fonts
-  ['en','ko'].forEach(loc => userFonts[loc].forEach(loadGoogleFont));
+  // ── Custom font dropdown ──────────────────────────────────────────────────
+  const fdBtn    = $('font-dropdown-btn');
+  const fdMenu   = $('font-dropdown-menu');
+  const fdLabel  = $('font-dropdown-label');
 
-  // ── Sidebar controls ─────────────────────────────────────────────────────
-  const localeEl   = $('locale');
-  const fontSelect = $('font-select');
-  const textEl     = $('input-text');
-  const colorEl    = $('text-color');
-  const alphaEl    = $('alpha');
-  const alphaVal   = $('alpha-value');
-  const cellH      = $('cell-height');
-  const cellW      = $('cell-width');
-  const repeatRows = $('repeat-rows');
-  const container  = $('paper-container');
-  const widthField = $('width-field');
+  function buildDropdown() {
+    const locale = $('locale').value;
+    const list   = userFonts[locale];
+    fdMenu.innerHTML = '';
 
-  function populateFontSelect() {
-    const locale = localeEl.value;
-    const prev = fontSelect.value;
-    fontSelect.innerHTML = '';
-    userFonts[locale].forEach(name => {
-      const opt = document.createElement('option');
-      opt.value = fontFamily(name, locale);
+    list.forEach(name => {
+      const opt = document.createElement('div');
+      opt.className = 'fd-option' + (fontFamily(name, locale) === currentFont ? ' selected' : '');
+      opt.style.fontFamily = fontFamily(name, locale);
       opt.textContent = name;
-      fontSelect.appendChild(opt);
+      opt.dataset.name = name;
+      opt.onclick = () => {
+        selectFont(name, locale);
+        closeDropdown();
+      };
+      fdMenu.appendChild(opt);
     });
-    // Restore previous selection if still available
-    if (prev && [...fontSelect.options].some(o => o.value === prev)) {
-      fontSelect.value = prev;
-    }
   }
 
-  // ── Paper rendering ───────────────────────────────────────────────────────
+  function selectFont(name, locale) {
+    const ff = fontFamily(name, locale);
+    currentFont = ff;
+    fdLabel.textContent = name;
+    fdLabel.style.fontFamily = ff;
+    document.querySelectorAll('.fd-option').forEach(o => {
+      o.classList.toggle('selected', o.dataset.name === name);
+    });
+    render();
+  }
+
+  function openDropdown() {
+    buildDropdown();
+    const rect = fdBtn.getBoundingClientRect();
+    fdMenu.style.top    = (rect.bottom + 4) + 'px';
+    fdMenu.style.left   = rect.left + 'px';
+    fdMenu.style.width  = rect.width + 'px';
+    fdMenu.classList.add('open');
+    fdBtn.classList.add('open');
+  }
+
+  function closeDropdown() {
+    fdMenu.classList.remove('open');
+    fdBtn.classList.remove('open');
+  }
+
+  fdBtn.onclick = e => {
+    e.stopPropagation();
+    fdMenu.classList.contains('open') ? closeDropdown() : openDropdown();
+  };
+  document.addEventListener('click', e => {
+    if (!fdMenu.contains(e.target) && e.target !== fdBtn) closeDropdown();
+  });
+
+  function initFontForLocale() {
+    const locale = $('locale').value;
+    const list = userFonts[locale];
+    const first = list[0] || 'sans-serif';
+    // keep current selection if still in list
+    const currentName = fdLabel.textContent;
+    const name = list.includes(currentName) ? currentName : first;
+    selectFont(name, locale);
+  }
+
+  // ── Paper rendering ────────────────────────────────────────────────────────
   function hexToRgba(hex, a) {
-    const r = parseInt(hex.slice(1,3),16);
-    const g = parseInt(hex.slice(3,5),16);
-    const b = parseInt(hex.slice(5,7),16);
+    const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
     return `rgba(${r},${g},${b},${a})`;
   }
 
-  function buildEnglish(lines, color, alpha, lineH, font) {
+  function buildEnglish(lines, color, alpha, lineH, font, yOffset, fontSize) {
     const frag = document.createDocumentFragment();
-    const fontSize = Math.round(lineH * 0.6);
+    const descZone = Math.round(lineH * 0.30);
+    const fs = fontSize || Math.round(lineH * 0.72);
+
     lines.forEach(line => {
       const row = document.createElement('div');
       row.className = 'en-row';
+      row.style.marginBottom = (descZone + 4) + 'px';
+
       const wrap = document.createElement('div');
       wrap.className = 'en-lines';
-      wrap.style.cssText = `height:${lineH}px;position:relative;`;
+      wrap.style.cssText = `height:${lineH}px;position:relative;overflow:visible;`;
 
       const top = document.createElement('div');
-      top.style.cssText = 'position:absolute;top:0;left:0;right:0;height:2px;background:#333;';
-      const bot = document.createElement('div');
-      bot.style.cssText = 'position:absolute;bottom:0;left:0;right:0;height:2px;background:#333;';
+      top.style.cssText = 'position:absolute;top:0;left:0;right:0;height:2px;background:#444;';
+
       const mid = document.createElement('div');
-      mid.style.cssText = 'position:absolute;top:50%;left:0;right:0;height:0;border-top:1.5px dashed #aaa;transform:translateY(-50%);';
+      mid.style.cssText = 'position:absolute;top:45%;left:0;right:0;height:0;border-top:1.5px dashed #bbb;';
+
+      const baseline = document.createElement('div');
+      baseline.style.cssText = 'position:absolute;bottom:0;left:0;right:0;height:0;border-top:1.5px dashed #bbb;';
 
       const guide = document.createElement('div');
       guide.className = 'en-guide-text';
-      guide.style.cssText = `font-size:${fontSize}px;color:${hexToRgba(color, alpha/100)};font-family:${font};`;
+      // y-offset shifts bottom anchor: positive = up (further from bottom), negative = down
+      guide.style.cssText = `font-size:${fs}px;color:${hexToRgba(color,alpha/100)};font-family:${font};bottom:${yOffset}px;`;
       guide.textContent = line;
 
-      wrap.append(top, bot, mid, guide);
+      wrap.append(top, mid, baseline, guide);
       row.appendChild(wrap);
       frag.appendChild(row);
     });
     return frag;
   }
 
-  function buildKorean(lines, color, alpha, cH, cW, font) {
+  function buildKorean(lines, color, alpha, cH, cW, font, yOffset, fontSize) {
     const frag = document.createDocumentFragment();
-    const fontSize = Math.round(Math.min(cH, cW) * 0.72);
-    const cellsPerRow = Math.max(1, Math.floor((794 - 120) / cW));
-
+    const fs = fontSize || Math.round(Math.min(cH, cW) * 0.72);
+    const cols = Math.max(1, Math.floor((794-120) / cW));
     lines.forEach(line => {
-      const row = document.createElement('div');
-      row.className = 'ko-row';
+      const row = document.createElement('div'); row.className = 'ko-row';
       const chars = [...line];
-      for (let i = 0; i < cellsPerRow; i++) {
+      for (let i = 0; i < cols; i++) {
         const ch = chars[i] ?? '';
         const cell = document.createElement('div');
-        cell.className = 'ko-cell';
-        cell.style.cssText = `width:${cW}px;height:${cH}px;`;
+        cell.className = 'ko-cell'; cell.style.cssText = `width:${cW}px;height:${cH}px;`;
         if (ch && ch !== ' ') {
-          const span = document.createElement('span');
-          span.className = 'ko-char';
-          span.style.cssText = `font-size:${fontSize}px;color:${hexToRgba(color, alpha/100)};font-family:${font};`;
-          span.textContent = ch;
-          cell.appendChild(span);
+          const span = document.createElement('span'); span.className = 'ko-char';
+          span.style.cssText = `font-size:${fs}px;color:${hexToRgba(color,alpha/100)};font-family:${font};transform:translateY(${-yOffset}px);display:block;`;
+          span.textContent = ch; cell.appendChild(span);
         }
         row.appendChild(cell);
       }
@@ -655,77 +682,103 @@
   }
 
   function render() {
-    const locale   = localeEl.value;
-    const rawText  = textEl.value;
-    const color    = colorEl.value;
-    const alpha    = parseInt(alphaEl.value);
-    const lineH    = parseInt(cellH.value) || 56;
-    const cellWVal = parseInt(cellW.value) || 56;
-    const repeat   = parseInt(repeatRows.value) || 1;
-    const font     = fontSelect.value || fontFamily(userFonts[locale][0] || 'sans-serif', locale);
+    const locale   = $('locale').value;
+    const rawText  = $('input-text').value;
+    const color    = $('text-color').value;
+    const alpha    = parseInt($('alpha').value);
+    const lineH    = parseInt($('cell-height').value) || 56;
+    const cellWVal = parseInt($('cell-width').value) || 56;
+    const repeat   = parseInt($('repeat-rows').value) || 1;
+    const font     = currentFont || fontFamily(userFonts[locale][0] || 'sans-serif', locale);
+    const yOffset  = parseInt($('text-y-offset').value) || 0;
+    const fontSizeOverride = parseInt($('text-font-size').value) || 0;
 
-    widthField.style.display = locale === 'ko' ? 'block' : 'none';
-    container.innerHTML = '';
+    $('width-field').style.display = locale === 'ko' ? 'block' : 'none';
+    const con = $('paper-container'); con.innerHTML = '';
 
-    const paperW    = 794 - 120;
-    const charW     = Math.round(lineH * 0.38);
-    const maxCharsEn = Math.max(1, Math.floor(paperW / charW));
-    const maxCharsKo = Math.max(1, Math.floor(paperW / cellWVal));
+    const pw = 794-120;
+    const maxEn = Math.max(1, Math.floor(pw / Math.round(lineH*0.38)));
+    const maxKo = Math.max(1, Math.floor(pw / cellWVal));
 
-    let expanded = [];
+    let exp = [];
     rawText.split('\n').forEach(line => {
-      if (!line.trim()) { expanded.push(''); return; }
-      const max = locale === 'ko' ? maxCharsKo : maxCharsEn;
-      chunkLine(line, max).forEach(chunk => {
-        for (let r = 0; r < repeat; r++) expanded.push(chunk);
-      });
+      if (!line.trim()) { exp.push(''); return; }
+      const max = locale === 'ko' ? maxKo : maxEn;
+      chunkLine(line, max).forEach(c => { for (let r=0;r<repeat;r++) exp.push(c); });
     });
 
-    const PAGE_H     = 1123 - 48 - 40 - 28;
-    const rowH       = locale === 'ko' ? lineH + 4 : lineH + 8;
-    const perPage    = Math.max(1, Math.floor(PAGE_H / rowH));
-    while (expanded.length < perPage) expanded.push('');
+    const rowH = locale === 'ko' ? lineH + 4 : lineH + Math.round(lineH * 0.30) + 4;
+    const perPage = Math.max(1, Math.floor((1123-48-40-28) / rowH));
+    while (exp.length < perPage) exp.push('');
 
     const pages = [];
-    for (let i = 0; i < expanded.length; i += perPage) pages.push(expanded.slice(i, i + perPage));
-    const last = pages[pages.length - 1];
+    for (let i=0; i<exp.length; i+=perPage) pages.push(exp.slice(i, i+perPage));
+    const last = pages[pages.length-1];
     while (last.length < perPage) last.push('');
 
     pages.forEach((lines, idx) => {
-      const page = document.createElement('div');
-      page.className = 'paper-page';
-
-      const content = document.createElement('div');
-      content.className = 'paper-content';
-      content.appendChild(
-        locale === 'ko'
-          ? buildKorean(lines, color, alpha, lineH, cellWVal, font)
-          : buildEnglish(lines, color, alpha, lineH, font)
-      );
-
-      const num = document.createElement('div');
-      num.className = 'page-number';
-      num.textContent = pages.length > 1 ? `— ${idx + 1} / ${pages.length} —` : '';
-
-      page.append(content, num);
-      container.appendChild(page);
+      const page = document.createElement('div'); page.className = 'paper-page';
+      const content = document.createElement('div'); content.className = 'paper-content';
+      content.appendChild(locale==='ko'
+        ? buildKorean(lines,color,alpha,lineH,cellWVal,font,yOffset,fontSizeOverride)
+        : buildEnglish(lines,color,alpha,lineH,font,yOffset,fontSizeOverride));
+      const num = document.createElement('div'); num.className = 'page-number';
+      num.textContent = pages.length > 1 ? `— ${idx+1} / ${pages.length} —` : '';
+      page.append(content, num); con.appendChild(page);
     });
   }
 
-  // ── Font Manager ─────────────────────────────────────────────────────────
+  // ── Toast ─────────────────────────────────────────────────────────────────
+  let toastTimer = null;
+  function showToast(msg) {
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  // ── Context menu ──────────────────────────────────────────────────────────
+  const ctxMenu = $('ctx-menu');
+  let ctxTargetIdx = -1;
+
+  function openCtxMenu(x, y, idx) {
+    ctxTargetIdx = idx;
+    ctxMenu.style.left = x + 'px';
+    ctxMenu.style.top  = y + 'px';
+    ctxMenu.classList.add('open');
+  }
+  function closeCtxMenu() { ctxMenu.classList.remove('open'); ctxTargetIdx = -1; }
+
+  document.addEventListener('click', () => closeCtxMenu());
+  document.addEventListener('keydown', e => { if (e.key==='Escape') closeCtxMenu(); });
+
+  $('ctx-delete').onclick = () => {
+    if (ctxTargetIdx < 0) return;
+    const list = userFonts[fmLocale];
+    if (list.length <= 1) { showToast("It's the only font you have"); closeCtxMenu(); return; }
+    list.splice(ctxTargetIdx, 1);
+    saveUserFonts(fmLocale, list);
+    renderFmList();
+    renderFmResults(fmSearch.value);
+    // If we're editing the active locale, refresh sidebar
+    if (fmLocale === $('locale').value) initFontForLocale();
+    closeCtxMenu();
+  };
+
+  // ── Font Manager ──────────────────────────────────────────────────────────
   const overlay      = $('font-modal-overlay');
   const fmSearch     = $('fm-search');
-  const fmResults    = $('fm-results');
-  const fmList       = $('fm-list');
   const fmPreviewTxt = $('fm-preview-text');
-  const fmEmptyHint  = $('fm-empty-hint');
-
-  let fmLocale = localeEl.value;    // which locale the modal is editing
+  let fmLocale = $('locale').value;
   let searchDebounce = null;
 
+  // Drag state
+  let dragSrcIdx = -1;
+
   function openModal() {
-    fmLocale = localeEl.value;
-    syncModalTabs();
+    fmLocale = $('locale').value;
+    syncTabs();
     updatePreviewPlaceholder();
     renderFmList();
     renderFmResults('');
@@ -735,54 +788,47 @@
 
   function closeModal() {
     overlay.classList.remove('open');
-    populateFontSelect();
-    render();
+    // Refresh sidebar dropdown for active locale
+    if (fmLocale === $('locale').value) {
+      buildDropdown();
+      initFontForLocale();
+    }
   }
 
-  function syncModalTabs() {
-    document.querySelectorAll('.fm-tab').forEach(t => {
-      t.classList.toggle('active', t.dataset.locale === fmLocale);
-    });
+  function syncTabs() {
+    document.querySelectorAll('.fm-tab').forEach(t =>
+      t.classList.toggle('active', t.dataset.locale === fmLocale));
   }
 
   function updatePreviewPlaceholder() {
-    fmPreviewTxt.value = fmLocale === 'ko' ? '안녕하세요 반갑습니다' : 'The quick brown fox';
+    fmPreviewTxt.value = fmLocale==='ko' ? '안녕하세요 반갑습니다' : 'The quick brown fox';
   }
 
-  // Render search results
+  // ── Search results ────────────────────────────────────────────────────────
   function renderFmResults(query) {
-    fmResults.innerHTML = '';
+    const res = $('fm-results'); res.innerHTML = '';
     const q = query.trim().toLowerCase();
     const catalog = GF_CATALOG[fmLocale] || [];
     const filtered = q ? catalog.filter(n => n.toLowerCase().includes(q)) : catalog;
 
     if (!filtered.length) {
-      fmResults.innerHTML = `<div class="fm-no-results">No fonts match "${query}"</div>`;
-      return;
+      res.innerHTML = `<div class="fm-no-results">No fonts match "${query}"</div>`; return;
     }
 
     const userList = userFonts[fmLocale];
-    const previewTxt = fmPreviewTxt.value || (fmLocale === 'ko' ? '가나다라' : 'Aa Bb Cc');
+    const prev = fmPreviewTxt.value || (fmLocale==='ko' ? '가나다라' : 'Aa Bb');
 
     filtered.slice(0, 40).forEach(name => {
       loadGoogleFont(name);
       const already = userList.includes(name);
 
-      const item = document.createElement('div');
-      item.className = 'fm-result-item';
-
-      const info = document.createElement('div');
-      info.className = 'fm-result-info';
-
-      const nameEl = document.createElement('div');
-      nameEl.className = 'fm-result-name';
+      const item = document.createElement('div'); item.className = 'fm-result-item';
+      const info = document.createElement('div'); info.className = 'fm-result-info';
+      const nameEl = document.createElement('div'); nameEl.className = 'fm-result-name';
       nameEl.textContent = name;
-
-      const preview = document.createElement('div');
-      preview.className = 'fm-result-preview';
+      const preview = document.createElement('div'); preview.className = 'fm-result-preview';
       preview.style.fontFamily = fontFamily(name, fmLocale);
-      preview.textContent = previewTxt;
-
+      preview.textContent = prev;
       info.append(nameEl, preview);
 
       const btn = document.createElement('button');
@@ -794,103 +840,97 @@
         loadGoogleFont(name);
         userFonts[fmLocale].push(name);
         saveUserFonts(fmLocale, userFonts[fmLocale]);
-        btn.className = 'fm-add-btn added';
-        btn.textContent = '✓ Added';
-        btn.disabled = true;
+        btn.className = 'fm-add-btn added'; btn.textContent = '✓ Added'; btn.disabled = true;
         renderFmList();
       };
 
       item.append(info, btn);
-      fmResults.appendChild(item);
+      res.appendChild(item);
     });
 
     if (filtered.length > 40) {
-      const more = document.createElement('div');
-      more.className = 'fm-no-results';
-      more.textContent = `${filtered.length - 40} more — refine your search`;
-      fmResults.appendChild(more);
+      const more = document.createElement('div'); more.className = 'fm-no-results';
+      more.textContent = `${filtered.length-40} more — refine your search`;
+      res.appendChild(more);
     }
   }
 
-  // Render current font list (right side)
+  // ── Font list (right panel) ───────────────────────────────────────────────
   function renderFmList() {
-    fmList.innerHTML = '';
+    const fmList = $('fm-list'); fmList.innerHTML = '';
     const list = userFonts[fmLocale];
-    const previewTxt = fmPreviewTxt.value || (fmLocale === 'ko' ? '가나다라' : 'Aa Bb Cc');
+    const prev = fmPreviewTxt.value || (fmLocale==='ko' ? '가나다라' : 'Aa Bb');
 
-    fmEmptyHint.style.display = list.length ? 'none' : 'block';
+    $('fm-empty-hint').style.display = list.length ? 'none' : 'block';
 
     list.forEach((name, idx) => {
       const item = document.createElement('div');
       item.className = 'fm-list-item';
+      item.draggable = true;
+      item.dataset.idx = idx;
 
-      // Up/down buttons
-      const btns = document.createElement('div');
-      btns.className = 'fm-order-btns';
-
-      const up = document.createElement('button');
-      up.className = 'fm-order-btn';
-      up.textContent = '▲';
-      up.disabled = idx === 0;
-      up.onclick = () => {
-        [list[idx-1], list[idx]] = [list[idx], list[idx-1]];
-        saveUserFonts(fmLocale, list);
-        renderFmList();
-      };
-
-      const dn = document.createElement('button');
-      dn.className = 'fm-order-btn';
-      dn.textContent = '▼';
-      dn.disabled = idx === list.length - 1;
-      dn.onclick = () => {
-        [list[idx], list[idx+1]] = [list[idx+1], list[idx]];
-        saveUserFonts(fmLocale, list);
-        renderFmList();
-      };
-
-      btns.append(up, dn);
+      // Drag handle
+      const handle = document.createElement('div');
+      handle.className = 'drag-handle';
+      handle.title = 'Drag to reorder';
 
       // Font info
-      const info = document.createElement('div');
-      info.className = 'fm-list-info';
-
-      const nameEl = document.createElement('div');
-      nameEl.className = 'fm-list-name';
+      const info = document.createElement('div'); info.className = 'fm-list-info';
+      const nameEl = document.createElement('div'); nameEl.className = 'fm-list-name';
       nameEl.textContent = name;
-
-      const preview = document.createElement('div');
-      preview.className = 'fm-list-preview';
+      // Preview shows the font name itself, rendered in that font
+      const preview = document.createElement('div'); preview.className = 'fm-list-preview';
       preview.style.fontFamily = fontFamily(name, fmLocale);
-      preview.textContent = previewTxt;
+      preview.textContent = name;   // ← font name as preview text
 
       info.append(nameEl, preview);
-
-      // Remove button
-      const rm = document.createElement('button');
-      rm.className = 'fm-remove-btn';
-      rm.title = 'Remove';
-      rm.textContent = '×';
-      rm.onclick = () => {
-        userFonts[fmLocale].splice(idx, 1);
-        saveUserFonts(fmLocale, userFonts[fmLocale]);
-        renderFmList();
-        renderFmResults(fmSearch.value); // refresh Added state
-      };
-
-      item.append(btns, info, rm);
+      item.append(handle, info);
       fmList.appendChild(item);
+
+      // ── Drag events ──
+      item.addEventListener('dragstart', e => {
+        dragSrcIdx = idx;
+        item.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+      });
+      item.addEventListener('dragend', () => {
+        item.classList.remove('dragging');
+        document.querySelectorAll('.fm-list-item').forEach(el => el.classList.remove('drag-over'));
+      });
+      item.addEventListener('dragover', e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        document.querySelectorAll('.fm-list-item').forEach(el => el.classList.remove('drag-over'));
+        item.classList.add('drag-over');
+      });
+      item.addEventListener('drop', e => {
+        e.preventDefault();
+        if (dragSrcIdx < 0 || dragSrcIdx === idx) return;
+        const moved = list.splice(dragSrcIdx, 1)[0];
+        list.splice(idx, 0, moved);
+        saveUserFonts(fmLocale, list);
+        dragSrcIdx = -1;
+        renderFmList();
+      });
+
+      // ── Right-click ──
+      item.addEventListener('contextmenu', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        openCtxMenu(e.clientX, e.clientY, idx);
+      });
     });
   }
 
   // ── Event wiring ──────────────────────────────────────────────────────────
   $('btn-manage-fonts').onclick = openModal;
   $('fm-close').onclick = closeModal;
-  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+  overlay.addEventListener('click', e => { if (e.target===overlay) closeModal(); });
 
   document.querySelectorAll('.fm-tab').forEach(tab => {
     tab.onclick = () => {
       fmLocale = tab.dataset.locale;
-      syncModalTabs();
+      syncTabs();
       updatePreviewPlaceholder();
       renderFmList();
       renderFmResults(fmSearch.value);
@@ -902,32 +942,25 @@
     searchDebounce = setTimeout(() => renderFmResults(fmSearch.value), 180);
   });
 
-  $('fm-search-clear').onclick = () => {
-    fmSearch.value = '';
-    renderFmResults('');
-    fmSearch.focus();
-  };
+  $('fm-search-clear').onclick = () => { fmSearch.value=''; renderFmResults(''); fmSearch.focus(); };
 
   fmPreviewTxt.addEventListener('input', () => {
-    // Update all preview texts live
-    document.querySelectorAll('.fm-result-preview, .fm-list-preview').forEach(el => {
-      el.textContent = fmPreviewTxt.value;
-    });
+    document.querySelectorAll('.fm-result-preview').forEach(el => el.textContent = fmPreviewTxt.value);
+    // Keep fm-list previews as font name (don't override)
   });
 
-  localeEl.addEventListener('input', () => { populateFontSelect(); render(); });
-  [textEl, colorEl, cellH, cellW, repeatRows, fontSelect].forEach(el => {
-    el.addEventListener('input', render);
+  $('locale').addEventListener('input', () => { initFontForLocale(); render(); });
+  ['input-text','text-color','cell-height','cell-width','repeat-rows','text-y-offset','text-font-size'].forEach(id => {
+    $(id).addEventListener('input', render);
   });
-  alphaEl.addEventListener('input', () => {
-    alphaVal.textContent = alphaEl.value + '%';
+  $('alpha').addEventListener('input', () => {
+    $('alpha-value').textContent = $('alpha').value + '%';
     render();
   });
-
   $('btn-print').onclick = () => window.print();
 
-  // ── Init ─────────────────────────────────────────────────────────────────
-  populateFontSelect();
+  // ── Init ──────────────────────────────────────────────────────────────────
+  initFontForLocale();
   render();
 </script>
 </body>
