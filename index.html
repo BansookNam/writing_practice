@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Writing Practice Generator</title>
+  <!-- Google Fonts: English practice fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat&family=Patrick+Hand&family=Schoolbell&family=Kalam&family=Architects+Daughter&family=Comic+Neue&family=Nanum+Pen+Script&family=Gamja+Flower&family=Noto+Sans+KR&family=Do+Hyeon&family=Cute+Font&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f5f5;
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      gap: 0;
+    }
+
+    /* ── Sidebar ── */
+    #sidebar {
+      width: 300px;
+      min-width: 300px;
+      background: #fff;
+      border-right: 1px solid #ddd;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      height: 100vh;
+      overflow-y: auto;
+      position: sticky;
+      top: 0;
+    }
+
+    h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #111;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+
+    label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #666;
+    }
+
+    select, textarea {
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 14px;
+      background: #fafafa;
+      color: #333;
+      transition: border-color 0.15s;
+    }
+
+    select:focus, textarea:focus {
+      outline: none;
+      border-color: #4f80ff;
+      background: #fff;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 120px;
+      font-family: inherit;
+      line-height: 1.5;
+    }
+
+    .color-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    input[type="color"] {
+      width: 40px;
+      height: 36px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 2px;
+      cursor: pointer;
+      background: #fafafa;
+    }
+
+    .alpha-label {
+      font-size: 12px;
+      color: #888;
+      white-space: nowrap;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      accent-color: #4f80ff;
+    }
+
+    #alpha-value {
+      font-size: 12px;
+      color: #555;
+      min-width: 32px;
+      text-align: right;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* Size controls */
+    .size-row {
+      display: flex;
+      gap: 10px;
+    }
+    .size-row .field { flex: 1; }
+    .size-row input[type="number"] {
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 14px;
+      background: #fafafa;
+      width: 100%;
+    }
+    .size-row input[type="number"]:focus {
+      outline: none;
+      border-color: #4f80ff;
+      background: #fff;
+    }
+
+    #btn-print {
+      margin-top: auto;
+      padding: 12px;
+      background: #4f80ff;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    #btn-print:hover { background: #3a6aee; }
+
+    /* ── Preview area ── */
+    #preview-area {
+      flex: 1;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-y: auto;
+    }
+
+    #preview-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #aaa;
+      margin-bottom: 16px;
+      align-self: flex-start;
+    }
+
+    .paper-page {
+      background: #fff;
+      width: 794px;
+      height: 1123px;
+      padding: 48px 60px 40px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+      border-radius: 4px;
+      margin-bottom: 32px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .paper-content {
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .page-number {
+      text-align: center;
+      font-size: 11px;
+      color: #aaa;
+      padding-top: 8px;
+      letter-spacing: 0.05em;
+      flex-shrink: 0;
+    }
+
+    /* ── English lined rows ── */
+    .en-row {
+      position: relative;
+      margin-bottom: 8px;
+    }
+
+    .en-lines {
+      position: relative;
+      width: 100%;
+    }
+
+    .en-guide-text {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      display: flex;
+      align-items: center;
+      padding: 0 4px;
+      font-family: 'Comic Sans MS', 'Chalkboard SE', cursive;
+      white-space: pre;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* ── Korean grid rows ── */
+    .ko-row {
+      display: flex;
+      flex-wrap: nowrap;
+      margin-bottom: 4px;
+      border-top: 1.5px solid #e53935;
+      border-left: 1.5px solid #e53935;
+    }
+
+    .ko-cell {
+      position: relative;
+      border-right: 1.5px solid #e53935;
+      border-bottom: 1.5px solid #e53935;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .ko-cell::before, .ko-cell::after {
+      content: '';
+      position: absolute;
+      background: rgba(229, 57, 53, 0.25);
+      pointer-events: none;
+    }
+    /* vertical center line */
+    .ko-cell::before {
+      width: 1px;
+      top: 0; bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    /* horizontal center line */
+    .ko-cell::after {
+      height: 1px;
+      left: 0; right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .ko-char {
+      position: relative;
+      z-index: 2;
+      font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+      line-height: 1;
+      text-align: center;
+    }
+
+    /* ── Print styles ── */
+    @media print {
+      body { background: #fff; }
+      #sidebar { display: none !important; }
+      #preview-area { padding: 0; overflow: visible; }
+      #preview-label { display: none; }
+      .paper-page {
+        width: 100%;
+        height: 100vh;
+        padding: 15mm 15mm 10mm;
+        box-shadow: none;
+        border-radius: 0;
+        margin-bottom: 0;
+        page-break-after: always;
+      }
+      .paper-page:last-child { page-break-after: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Sidebar ── -->
+<div id="sidebar">
+  <h1>✏️ Writing Practice</h1>
+
+  <div class="field">
+    <label>Locale</label>
+    <select id="locale">
+      <option value="en">English</option>
+      <option value="ko">Korean (한국어)</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>Font</label>
+    <select id="font-select"></select>
+  </div>
+
+  <div class="field">
+    <label>Text</label>
+    <textarea id="input-text" placeholder="Paste or type your text here…">The quick brown fox jumps over the lazy dog.</textarea>
+  </div>
+
+  <div class="field-group">
+    <label>Text Color &amp; Opacity</label>
+    <div class="color-row">
+      <input type="color" id="text-color" value="#222222" />
+      <input type="range" id="alpha" min="0" max="100" value="30" />
+      <span id="alpha-value">30%</span>
+    </div>
+  </div>
+
+  <div class="field-group">
+    <label>Cell / Line Size</label>
+    <div class="size-row">
+      <div class="field">
+        <label style="font-size:11px">Height (px)</label>
+        <input type="number" id="cell-height" value="56" min="20" max="200" />
+      </div>
+      <div class="field" id="width-field">
+        <label style="font-size:11px">Width (px) — KO</label>
+        <input type="number" id="cell-width" value="56" min="20" max="200" />
+      </div>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Repeat rows</label>
+    <input type="number" id="repeat-rows" value="2" min="1" max="10" style="border:1px solid #ddd;border-radius:6px;padding:8px 10px;font-size:14px;background:#fafafa;" />
+  </div>
+
+  <button id="btn-print">🖨️ Print / Save as PDF</button>
+</div>
+
+<!-- ── Preview ── -->
+<div id="preview-area">
+  <div id="preview-label">Preview (A4)</div>
+  <div id="paper-container"></div>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+
+  const localeEl    = $('locale');
+  const textEl      = $('input-text');
+  const colorEl     = $('text-color');
+  const alphaEl     = $('alpha');
+  const alphaVal    = $('alpha-value');
+  const cellH       = $('cell-height');
+  const cellW       = $('cell-width');
+  const repeatRows  = $('repeat-rows');
+  const container   = $('paper-container');
+  const widthField  = $('width-field');
+  const fontSelect  = $('font-select');
+
+  const FONTS = {
+    en: [
+      { label: 'Caveat',               value: "'Caveat', cursive" },
+      { label: 'Patrick Hand',         value: "'Patrick Hand', cursive" },
+      { label: 'Kalam',                value: "'Kalam', cursive" },
+      { label: 'Architects Daughter',  value: "'Architects Daughter', cursive" },
+      { label: 'Schoolbell',           value: "'Schoolbell', cursive" },
+      { label: 'Comic Neue',           value: "'Comic Neue', cursive" },
+    ],
+    ko: [
+      { label: '나눔펜 (Nanum Pen)',    value: "'Nanum Pen Script', cursive" },
+      { label: '감자꽃 (Gamja Flower)', value: "'Gamja Flower', cursive" },
+      { label: '귀여운 폰트 (Cute Font)',value: "'Cute Font', cursive" },
+      { label: '도현 (Do Hyeon)',       value: "'Do Hyeon', sans-serif" },
+      { label: 'Noto Sans KR',         value: "'Noto Sans KR', sans-serif" },
+    ],
+  };
+
+  function populateFonts() {
+    const locale = localeEl.value;
+    fontSelect.innerHTML = '';
+    FONTS[locale].forEach(f => {
+      const opt = document.createElement('option');
+      opt.value = f.value;
+      opt.textContent = f.label;
+      opt.style.fontFamily = f.value;
+      fontSelect.appendChild(opt);
+    });
+  }
+
+  function hexToRgba(hex, alpha) {
+    const r = parseInt(hex.slice(1,3), 16);
+    const g = parseInt(hex.slice(3,5), 16);
+    const b = parseInt(hex.slice(5,7), 16);
+    return `rgba(${r},${g},${b},${alpha})`;
+  }
+
+  function buildEnglish(lines, color, alpha, lineH, font) {
+    const frag = document.createDocumentFragment();
+    const fontSize = Math.round(lineH * 0.6);
+
+    lines.forEach(line => {
+      const row = document.createElement('div');
+      row.className = 'en-row';
+
+      const linesDiv = document.createElement('div');
+      linesDiv.className = 'en-lines';
+      linesDiv.style.height = lineH + 'px';
+      linesDiv.style.position = 'relative';
+
+      // top thick line
+      const top = document.createElement('div');
+      top.style.cssText = `position:absolute;top:0;left:0;right:0;height:2px;background:#333;`;
+
+      // bottom thick line
+      const bot = document.createElement('div');
+      bot.style.cssText = `position:absolute;bottom:0;left:0;right:0;height:2px;background:#333;`;
+
+      // dashed middle line
+      const mid = document.createElement('div');
+      mid.style.cssText = `position:absolute;top:50%;left:0;right:0;height:0;
+        border-top:1.5px dashed #aaa;transform:translateY(-50%);`;
+
+      // guide text
+      const guide = document.createElement('div');
+      guide.className = 'en-guide-text';
+      guide.style.fontSize = fontSize + 'px';
+      guide.style.color = hexToRgba(color, alpha / 100);
+      guide.style.fontFamily = font;
+      guide.textContent = line;
+
+      linesDiv.appendChild(top);
+      linesDiv.appendChild(bot);
+      linesDiv.appendChild(mid);
+      linesDiv.appendChild(guide);
+      row.appendChild(linesDiv);
+      frag.appendChild(row);
+    });
+
+    return frag;
+  }
+
+  function buildKorean(lines, color, alpha, cH, cW, font) {
+    const frag = document.createDocumentFragment();
+    const fontSize = Math.round(Math.min(cH, cW) * 0.72);
+
+    const paperContentW = 794 - 120;
+    const cellsPerRow = Math.max(1, Math.floor(paperContentW / cW));
+
+    lines.forEach(line => {
+      const row = document.createElement('div');
+      row.className = 'ko-row';
+
+      const chars = [...line];
+      // always fill to cellsPerRow so empty rows have proper height
+      for (let i = 0; i < cellsPerRow; i++) {
+        const ch = chars[i] ?? '';
+        const cell = document.createElement('div');
+        cell.className = 'ko-cell';
+        cell.style.width  = cW + 'px';
+        cell.style.height = cH + 'px';
+
+        if (ch && ch !== ' ') {
+          const span = document.createElement('span');
+          span.className = 'ko-char';
+          span.style.fontSize = fontSize + 'px';
+          span.style.color = hexToRgba(color, alpha / 100);
+          span.style.fontFamily = font;
+          span.textContent = ch;
+          cell.appendChild(span);
+        }
+
+        row.appendChild(cell);
+      }
+
+      frag.appendChild(row);
+    });
+
+    return frag;
+  }
+
+  function chunkLine(line, maxCharsPerRow) {
+    const out = [];
+    for (let i = 0; i < line.length; i += maxCharsPerRow) {
+      out.push(line.slice(i, i + maxCharsPerRow));
+    }
+    return out.length ? out : [''];
+  }
+
+  function render() {
+    const locale   = localeEl.value;
+    const rawText  = textEl.value;
+    const color    = colorEl.value;
+    const alpha    = parseInt(alphaEl.value);
+    const lineH    = parseInt(cellH.value) || 56;
+    const cellWVal = parseInt(cellW.value) || 56;
+    const repeat   = parseInt(repeatRows.value) || 1;
+    const font     = fontSelect.value || FONTS[locale][0].value;
+
+    widthField.style.display = locale === 'ko' ? 'block' : 'none';
+
+    container.innerHTML = '';
+
+    // Paper dimensions: height 1123px, padding top 48 + bottom 40 + page-number ~28 = 116px
+    const paperContentW = 794 - 120;
+    const charWidth = Math.round(lineH * 0.38);
+    const maxCharsEn = Math.max(1, Math.floor(paperContentW / charWidth));
+    const maxCharsKo = Math.max(1, Math.floor(paperContentW / cellWVal));
+
+    // Expand input into individual rows
+    let expandedLines = [];
+    rawText.split('\n').forEach(line => {
+      if (line.trim() === '') { expandedLines.push(''); return; }
+      const maxChars = locale === 'ko' ? maxCharsKo : maxCharsEn;
+      chunkLine(line, maxChars).forEach(chunk => {
+        for (let r = 0; r < repeat; r++) expandedLines.push(chunk);
+      });
+    });
+
+    // Rows per page
+    const PAGE_CONTENT_H = 1123 - 48 - 40 - 28; // ~1007px usable
+    const rowH = locale === 'ko' ? (lineH + 4) : (lineH + 8);
+    const rowsPerPage = Math.max(1, Math.floor(PAGE_CONTENT_H / rowH));
+
+    // Pad to fill at least one full page
+    while (expandedLines.length < rowsPerPage) expandedLines.push('');
+
+    // Split into pages
+    const pages = [];
+    for (let i = 0; i < expandedLines.length; i += rowsPerPage) {
+      pages.push(expandedLines.slice(i, i + rowsPerPage));
+    }
+
+    // Pad last page to full
+    const last = pages[pages.length - 1];
+    while (last.length < rowsPerPage) last.push('');
+
+    const totalPages = pages.length;
+
+    pages.forEach((pageLines, pageIdx) => {
+      const pageEl = document.createElement('div');
+      pageEl.className = 'paper-page';
+
+      const contentEl = document.createElement('div');
+      contentEl.className = 'paper-content';
+
+      const frag = locale === 'ko'
+        ? buildKorean(pageLines, color, alpha, lineH, cellWVal, font)
+        : buildEnglish(pageLines, color, alpha, lineH, font);
+      contentEl.appendChild(frag);
+
+      const numEl = document.createElement('div');
+      numEl.className = 'page-number';
+      numEl.textContent = totalPages > 1 ? `— ${pageIdx + 1} / ${totalPages} —` : '';
+
+      pageEl.appendChild(contentEl);
+      pageEl.appendChild(numEl);
+      container.appendChild(pageEl);
+    });
+  }
+
+  // Event listeners
+  localeEl.addEventListener('input', () => { populateFonts(); render(); });
+  [textEl, colorEl, cellH, cellW, repeatRows, fontSelect].forEach(el => {
+    el.addEventListener('input', render);
+  });
+
+  alphaEl.addEventListener('input', () => {
+    alphaVal.textContent = alphaEl.value + '%';
+    render();
+  });
+
+  $('btn-print').addEventListener('click', () => window.print());
+
+
+  // Initial render
+  populateFonts();
+  render();
+</script>
+</body>
+</html>

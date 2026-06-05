@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "write-practice",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-p", "3456", "/Users/nam/Projects/AI-Gen/write_practice"],
+      "port": 3456
+    }
+  ]
+}
