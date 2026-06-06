@@ -248,6 +248,8 @@
     .fm-add-btn.added { background: #e8f5e9; color: #388e3c; border-color: #a5d6a7; cursor: default; }
 
     .fm-no-results { padding: 32px; text-align: center; color: #aaa; font-size: 13px; }
+    .fm-load-more { display: block; width: 100%; padding: 12px; border: none; border-top: 1px solid #eee; background: #fafafa; color: #555; font-size: 13px; cursor: pointer; }
+    .fm-load-more:hover { background: #f0f0f0; }
 
     /* Right: Font list */
     #fm-right {
@@ -339,6 +341,53 @@
     }
     #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+    /* Hide mobile tabs on desktop */
+    #mobile-tabs { display: none; }
+
+    /* ── Mobile (≤549px) ── */
+    @media (max-width: 549px) {
+      body { flex-direction: column; }
+
+      /* Tab bar */
+      #mobile-tabs {
+        display: flex; position: sticky; top: 0; z-index: 500;
+        background: #fff; border-bottom: 1px solid #ddd; flex-shrink: 0;
+      }
+      .mob-tab {
+        flex: 1; padding: 12px 0; font-size: 13px; font-weight: 600;
+        border: none; background: none; color: #888; cursor: pointer;
+        border-bottom: 2px solid transparent; transition: all 0.15s;
+      }
+      .mob-tab.active { color: #4f80ff; border-bottom-color: #4f80ff; }
+
+      #sidebar {
+        width: 100%; min-width: 0; height: auto;
+        position: static; border-right: none; border-bottom: 1px solid #ddd;
+        padding: 16px;
+      }
+      #sidebar.mob-hidden { display: none; }
+
+      #preview-area { padding: 16px 12px; }
+      #preview-area.mob-hidden { display: none; }
+
+      /* Scale the A4 paper to fit the screen */
+      #paper-container {
+        transform-origin: top center;
+        transform: scale(var(--mob-scale, 1));
+        /* shrink the layout footprint to the scaled size */
+        margin-bottom: calc((1123px * var(--mob-scale, 1) - 1123px));
+      }
+
+      /* Print button: always full-width at bottom in controls tab */
+      #btn-print { position: static; width: 100%; margin-top: 16px; }
+
+      /* Font modal: full-screen, stack panels */
+      #font-modal { width: 100%; max-width: 100vw; height: 100%; max-height: 100vh; border-radius: 0; }
+      #fm-body { flex-direction: column; }
+      #fm-left { width: 100%; min-width: 0; border-right: none; border-bottom: 1px solid #eee; max-height: 55vh; }
+      #fm-right { max-height: 45vh; }
+    }
+
     /* ── Print ── */
     @media print {
       body { background: #fff; }
@@ -354,6 +403,12 @@
   </style>
 </head>
 <body>
+
+<!-- ── Mobile tab bar (hidden on desktop via CSS) ── -->
+<div id="mobile-tabs">
+  <button class="mob-tab active" data-panel="sidebar">⚙ Controls</button>
+  <button class="mob-tab" data-panel="preview-area">👁 Preview</button>
+</div>
 
 <!-- ── Sidebar ── -->
 <div id="sidebar">
@@ -818,41 +873,56 @@
     const userList = userFonts[fmLocale];
     const prev = fmPreviewTxt.value || (fmLocale==='ko' ? '가나다라' : 'Aa Bb');
 
-    filtered.slice(0, 40).forEach(name => {
-      loadGoogleFont(name);
-      const already = userList.includes(name);
+    const PAGE = 40;
+    let shown = 0;
 
-      const item = document.createElement('div'); item.className = 'fm-result-item';
-      const info = document.createElement('div'); info.className = 'fm-result-info';
-      const nameEl = document.createElement('div'); nameEl.className = 'fm-result-name';
-      nameEl.textContent = name;
-      const preview = document.createElement('div'); preview.className = 'fm-result-preview';
-      preview.style.fontFamily = fontFamily(name, fmLocale);
-      preview.textContent = prev;
-      info.append(nameEl, preview);
-
-      const btn = document.createElement('button');
-      btn.className = 'fm-add-btn' + (already ? ' added' : '');
-      btn.textContent = already ? '✓ Added' : '+ Add';
-      btn.disabled = already;
-      btn.onclick = () => {
-        if (userFonts[fmLocale].includes(name)) return;
+    function appendResults(batch) {
+      batch.forEach(name => {
         loadGoogleFont(name);
-        userFonts[fmLocale].push(name);
-        saveUserFonts(fmLocale, userFonts[fmLocale]);
-        btn.className = 'fm-add-btn added'; btn.textContent = '✓ Added'; btn.disabled = true;
-        renderFmList();
-      };
+        const already = userList.includes(name);
 
-      item.append(info, btn);
-      res.appendChild(item);
-    });
+        const item = document.createElement('div'); item.className = 'fm-result-item';
+        const info = document.createElement('div'); info.className = 'fm-result-info';
+        const nameEl = document.createElement('div'); nameEl.className = 'fm-result-name';
+        nameEl.textContent = name;
+        const preview = document.createElement('div'); preview.className = 'fm-result-preview';
+        preview.style.fontFamily = fontFamily(name, fmLocale);
+        preview.textContent = prev;
+        info.append(nameEl, preview);
 
-    if (filtered.length > 40) {
-      const more = document.createElement('div'); more.className = 'fm-no-results';
-      more.textContent = `${filtered.length-40} more — refine your search`;
-      res.appendChild(more);
+        const btn = document.createElement('button');
+        btn.className = 'fm-add-btn' + (already ? ' added' : '');
+        btn.textContent = already ? '✓ Added' : '+ Add';
+        btn.disabled = already;
+        btn.onclick = () => {
+          if (userFonts[fmLocale].includes(name)) return;
+          loadGoogleFont(name);
+          userFonts[fmLocale].push(name);
+          saveUserFonts(fmLocale, userFonts[fmLocale]);
+          btn.className = 'fm-add-btn added'; btn.textContent = '✓ Added'; btn.disabled = true;
+          renderFmList();
+        };
+
+        item.append(info, btn);
+        res.appendChild(item);
+      });
     }
+
+    function renderMore() {
+      const existing = res.querySelector('.fm-load-more');
+      if (existing) existing.remove();
+      appendResults(filtered.slice(shown, shown + PAGE));
+      shown = Math.min(shown + PAGE, filtered.length);
+      if (shown < filtered.length) {
+        const more = document.createElement('button');
+        more.className = 'fm-load-more';
+        more.textContent = `Load more (${filtered.length - shown} remaining)`;
+        more.onclick = renderMore;
+        res.appendChild(more);
+      }
+    }
+
+    renderMore();
   }
 
   // ── Font list (right panel) ───────────────────────────────────────────────
@@ -962,6 +1032,53 @@
   // ── Init ──────────────────────────────────────────────────────────────────
   initFontForLocale();
   render();
+
+  // ── Mobile tabs & paper scaling ──────────────────────────────────────────
+  const MOBILE_BP = 549;
+
+  function setMobPaperScale() {
+    const container = $('paper-container');
+    if (!container) return;
+    const available = window.innerWidth - 24; // 12px padding each side
+    const scale = Math.min(1, available / 794);
+    container.style.setProperty('--mob-scale', scale);
+    // Collapse the layout height so there's no giant whitespace gap
+    container.style.marginBottom = ((1123 * scale) - 1123) + 'px';
+  }
+
+  function applyMobileLayout() {
+    const isMobile = window.innerWidth <= MOBILE_BP;
+    $('mobile-tabs').style.display = isMobile ? 'flex' : 'none';
+    if (!isMobile) {
+      // Reset any mobile classes when resizing back to desktop
+      $('sidebar').classList.remove('mob-hidden');
+      $('preview-area').classList.remove('mob-hidden');
+    } else {
+      // Show only the active tab's panel
+      const activeTab = document.querySelector('.mob-tab.active');
+      const showPanel = activeTab?.dataset.panel || 'sidebar';
+      ['sidebar', 'preview-area'].forEach(id => {
+        $(id).classList.toggle('mob-hidden', id !== showPanel);
+      });
+      setMobPaperScale();
+    }
+  }
+
+  // Tab switching
+  document.querySelectorAll('.mob-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.mob-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const show = tab.dataset.panel;
+      ['sidebar', 'preview-area'].forEach(id => {
+        $(id).classList.toggle('mob-hidden', id !== show);
+      });
+      if (show === 'preview-area') setMobPaperScale();
+    });
+  });
+
+  applyMobileLayout();
+  window.addEventListener('resize', applyMobileLayout);
 </script>
 </body>
 </html>
