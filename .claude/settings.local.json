@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "mcp__Claude_Preview__preview_start"
+      "mcp__Claude_Preview__preview_start",
+      "Bash(chmod +x /Users/nam/Projects/AI-Gen/write_practice/start.sh)"
     ]
   }
 }
