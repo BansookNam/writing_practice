@@ -397,8 +397,10 @@
       .paper-page {
         width: 100%; height: 100vh; padding: 15mm 15mm 10mm;
         box-shadow: none; border-radius: 0; margin-bottom: 0; page-break-after: always;
+        overflow: visible;
       }
       .paper-page:last-child { page-break-after: avoid; }
+      .paper-content { overflow: visible; }
     }
   </style>
 </head>
@@ -730,26 +732,41 @@
     return frag;
   }
 
-  function chunkLine(line, max, wordWrap) {
-    if (!wordWrap) {
+  // measureText cache keyed by "fontSize|font"
+  const _mtCache = {};
+  function measureWidth(text, fontSpec) {
+    if (!_mtCache[fontSpec]) {
+      const c = document.createElement('canvas');
+      _mtCache[fontSpec] = c.getContext('2d');
+      _mtCache[fontSpec].font = fontSpec;
+    }
+    return _mtCache[fontSpec].measureText(text).width;
+  }
+
+  function chunkLine(line, max, wordWrap, maxPx, fontSpec) {
+    if (!wordWrap || !maxPx) {
       const out = [];
       for (let i = 0; i < line.length; i += max) out.push(line.slice(i, i + max));
       return out.length ? out : [''];
     }
-    // Word-wrap for English
+    // Pixel-accurate word-wrap for English
     const words = line.split(' ');
     const out = [];
     let cur = '';
     for (const word of words) {
       const candidate = cur ? cur + ' ' + word : word;
-      if (candidate.length <= max) {
+      if (measureWidth(candidate, fontSpec) <= maxPx) {
         cur = candidate;
       } else {
         if (cur) out.push(cur);
-        // If a single word is longer than max, hard-break it
-        if (word.length > max) {
-          for (let i = 0; i < word.length; i += max) out.push(word.slice(i, i + max));
-          cur = '';
+        // Single word wider than line: hard-break by character
+        if (measureWidth(word, fontSpec) > maxPx) {
+          let part = '';
+          for (const ch of word) {
+            if (measureWidth(part + ch, fontSpec) <= maxPx) { part += ch; }
+            else { out.push(part); part = ch; }
+          }
+          cur = part;
         } else {
           cur = word;
         }
@@ -775,14 +792,19 @@
     const con = $('paper-container'); con.innerHTML = '';
 
     const pw = 794-120;
-    const maxEn = Math.max(1, Math.floor(pw / Math.round(lineH*0.38)));
     const maxKo = Math.max(1, Math.floor(pw / cellWVal));
+    const enFontSize = fontSizeOverride || Math.round(lineH * 0.72);
+    const enFontSpec = `${enFontSize}px ${font}`;
 
     let exp = [];
     rawText.split('\n').forEach(line => {
       if (!line.trim()) { exp.push(''); return; }
-      const max = locale === 'ko' ? maxKo : maxEn;
-      chunkLine(line, max, locale !== 'ko').forEach(c => { for (let r=0;r<repeat;r++) exp.push(c); });
+      if (locale === 'ko') {
+        const maxKoChars = maxKo;
+        chunkLine(line, maxKoChars, false).forEach(c => { for (let r=0;r<repeat;r++) exp.push(c); });
+      } else {
+        chunkLine(line, 0, true, pw, enFontSpec).forEach(c => { for (let r=0;r<repeat;r++) exp.push(c); });
+      }
     });
 
     const rowH = locale === 'ko' ? lineH + 4 : lineH + Math.round(lineH * 0.30) + 4;

@@ -2,7 +2,12 @@
   "permissions": {
     "allow": [
       "mcp__Claude_Preview__preview_start",
-      "Bash(chmod +x /Users/nam/Projects/AI-Gen/write_practice/start.sh)"
+      "Bash(chmod +x /Users/nam/Projects/AI-Gen/write_practice/start.sh)",
+      "Skill(browse)",
+      "Skill(browse:*)",
+      "Bash(gh repo *)",
+      "Bash(curl -s https://raw.githubusercontent.com/chenglou/pretext/main/README.md)",
+      "WebFetch(domain:github.com)"
     ]
   }
 }
