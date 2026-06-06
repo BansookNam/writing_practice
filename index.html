@@ -390,10 +390,12 @@
 
     /* ── Print ── */
     @media print {
-      body { background: #fff; }
+      body { background: #fff; display: block; }
       #sidebar, #font-modal-overlay, #ctx-menu, #toast { display: none !important; }
-      #preview-area { padding: 0; overflow: visible; }
+      #mobile-tabs { display: none !important; }
+      #preview-area { display: block; padding: 0; overflow: visible; }
       #preview-label { display: none; }
+      #paper-container { width: 100%; }
       .paper-page {
         width: 100%; height: 100vh; padding: 15mm 15mm 10mm;
         box-shadow: none; border-radius: 0; margin-bottom: 0; page-break-after: always;
@@ -688,7 +690,7 @@
       wrap.style.cssText = `height:${lineH}px;position:relative;overflow:visible;`;
 
       const top = document.createElement('div');
-      top.style.cssText = 'position:absolute;top:0;left:0;right:0;height:2px;background:#444;';
+      top.style.cssText = 'position:absolute;top:0;left:0;right:0;height:0;border-top:2px solid #444;';
 
       const mid = document.createElement('div');
       mid.style.cssText = 'position:absolute;top:45%;left:0;right:0;height:0;border-top:1.5px dashed #bbb;';

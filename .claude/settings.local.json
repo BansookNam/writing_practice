@@ -7,7 +7,8 @@
       "Skill(browse:*)",
       "Bash(gh repo *)",
       "Bash(curl -s https://raw.githubusercontent.com/chenglou/pretext/main/README.md)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(qlmanage -t -s 1200 -o /tmp/ /tmp/write_practice_fixed.pdf)"
     ]
   }
 }
