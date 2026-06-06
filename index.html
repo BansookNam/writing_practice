@@ -730,9 +730,32 @@
     return frag;
   }
 
-  function chunkLine(line, max) {
+  function chunkLine(line, max, wordWrap) {
+    if (!wordWrap) {
+      const out = [];
+      for (let i = 0; i < line.length; i += max) out.push(line.slice(i, i + max));
+      return out.length ? out : [''];
+    }
+    // Word-wrap for English
+    const words = line.split(' ');
     const out = [];
-    for (let i = 0; i < line.length; i += max) out.push(line.slice(i, i + max));
+    let cur = '';
+    for (const word of words) {
+      const candidate = cur ? cur + ' ' + word : word;
+      if (candidate.length <= max) {
+        cur = candidate;
+      } else {
+        if (cur) out.push(cur);
+        // If a single word is longer than max, hard-break it
+        if (word.length > max) {
+          for (let i = 0; i < word.length; i += max) out.push(word.slice(i, i + max));
+          cur = '';
+        } else {
+          cur = word;
+        }
+      }
+    }
+    if (cur) out.push(cur);
     return out.length ? out : [''];
   }
 
@@ -759,7 +782,7 @@
     rawText.split('\n').forEach(line => {
       if (!line.trim()) { exp.push(''); return; }
       const max = locale === 'ko' ? maxKo : maxEn;
-      chunkLine(line, max).forEach(c => { for (let r=0;r<repeat;r++) exp.push(c); });
+      chunkLine(line, max, locale !== 'ko').forEach(c => { for (let r=0;r<repeat;r++) exp.push(c); });
     });
 
     const rowH = locale === 'ko' ? lineH + 4 : lineH + Math.round(lineH * 0.30) + 4;
