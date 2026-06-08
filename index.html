@@ -478,11 +478,11 @@
     <div class="size-row">
       <div class="field">
         <label style="font-size:11px">Y-offset (px)</label>
-        <input type="number" id="text-y-offset" value="0" min="-40" max="40" />
+        <input type="number" id="text-y-offset" value="-9" min="-40" max="40" />
       </div>
       <div class="field">
         <label style="font-size:11px">Font size (px)</label>
-        <input type="number" id="text-font-size" value="" min="8" max="200" placeholder="auto" />
+        <input type="number" id="text-font-size" value="49" min="8" max="200" placeholder="auto" />
       </div>
     </div>
   </div>
@@ -583,10 +583,17 @@
   }
 
   // ── localStorage ──────────────────────────────────────────────────────────
-  const LS = loc => `wp_fonts_${loc}`;
+  const LS       = loc => `wp_fonts_${loc}`;
+  const LS_SETTINGS = loc => `wp_settings_${loc}`;
+
   const DEFAULT_FONTS = {
-    en: ['Caveat','Patrick Hand','Kalam','Architects Daughter','Schoolbell','Comic Neue'],
-    ko: ['Nanum Pen Script','Gamja Flower','Cute Font','Do Hyeon','Noto Sans KR'],
+    en: ['Kalam'],
+    ko: ['Nanum Myeongjo','Cute Font'],
+  };
+
+  const DEFAULT_SETTINGS = {
+    en: { font: 'Kalam', height: 56, width: 56, repeat: 2, yOffset: -9, fontSize: 49, alpha: 30, color: '#222222', text: 'The quick brown fox jumps over the lazy dog.' },
+    ko: { font: 'Nanum Myeongjo', height: 56, width: 56, repeat: 2, yOffset: 0, fontSize: '', alpha: 30, color: '#222222', text: '빠른 갈색 여우가 게으른 개를 뛰어넘습니다.' },
   };
 
   function loadUserFonts(loc) {
@@ -594,6 +601,40 @@
     return [...DEFAULT_FONTS[loc]];
   }
   function saveUserFonts(loc, list) { localStorage.setItem(LS(loc), JSON.stringify(list)); }
+
+  function loadSettings(loc) {
+    try { const r = localStorage.getItem(LS_SETTINGS(loc)); if (r) return { ...DEFAULT_SETTINGS[loc], ...JSON.parse(r) }; } catch {}
+    return { ...DEFAULT_SETTINGS[loc] };
+  }
+  function saveSettings(loc) {
+    const s = {
+      font:     fdLabel.textContent,
+      height:   $('cell-height').value,
+      width:    $('cell-width').value,
+      repeat:   $('repeat-rows').value,
+      yOffset:  $('text-y-offset').value,
+      fontSize: $('text-font-size').value,
+      alpha:    $('alpha').value,
+      color:    $('text-color').value,
+      text:     $('input-text').value,
+    };
+    localStorage.setItem(LS_SETTINGS(loc), JSON.stringify(s));
+  }
+
+  function applySettings(loc) {
+    const s = loadSettings(loc);
+    $('cell-height').value    = s.height;
+    $('cell-width').value     = s.width;
+    $('repeat-rows').value    = s.repeat;
+    $('text-y-offset').value  = s.yOffset;
+    $('text-font-size').value = s.fontSize;
+    $('alpha').value          = s.alpha;
+    $('alpha-value').textContent = s.alpha + '%';
+    $('text-color').value     = s.color;
+    $('input-text').value     = s.text;
+    // font is applied separately via selectFont after buildDropdown
+    return s.font;
+  }
 
   const userFonts = { en: loadUserFonts('en'), ko: loadUserFonts('ko') };
   ['en','ko'].forEach(l => userFonts[l].forEach(loadGoogleFont));
@@ -625,7 +666,7 @@
     });
   }
 
-  function selectFont(name, locale) {
+  function selectFont(name, locale, skipSave = false) {
     const ff = fontFamily(name, locale);
     currentFont = ff;
     fdLabel.textContent = name;
@@ -633,6 +674,7 @@
     document.querySelectorAll('.fd-option').forEach(o => {
       o.classList.toggle('selected', o.dataset.name === name);
     });
+    if (!skipSave) saveSettings(locale);
     render();
   }
 
@@ -659,14 +701,19 @@
     if (!fdMenu.contains(e.target) && e.target !== fdBtn) closeDropdown();
   });
 
-  function initFontForLocale() {
+  function initFontForLocale(restoreSettings = false) {
     const locale = $('locale').value;
     const list = userFonts[locale];
-    const first = list[0] || 'sans-serif';
-    // keep current selection if still in list
-    const currentName = fdLabel.textContent;
-    const name = list.includes(currentName) ? currentName : first;
-    selectFont(name, locale);
+    let name;
+    if (restoreSettings) {
+      const savedFont = applySettings(locale);
+      name = list.includes(savedFont) ? savedFont : (list[0] || 'sans-serif');
+    } else {
+      const first = list[0] || 'sans-serif';
+      const currentName = fdLabel.textContent;
+      name = list.includes(currentName) ? currentName : first;
+    }
+    selectFont(name, locale, true);
   }
 
   // ── Paper rendering ────────────────────────────────────────────────────────
@@ -797,6 +844,8 @@
     const maxKo = Math.max(1, Math.floor(pw / cellWVal));
     const enFontSize = fontSizeOverride || Math.round(lineH * 0.72);
     const enFontSpec = `${enFontSize}px ${font}`;
+    // subtract en-guide-text padding (4px each side) + small safety buffer for font rendering
+    const enMaxPx = pw - 8 - 6;
 
     let exp = [];
     rawText.split('\n').forEach(line => {
@@ -805,7 +854,7 @@
         const maxKoChars = maxKo;
         chunkLine(line, maxKoChars, false).forEach(c => { for (let r=0;r<repeat;r++) exp.push(c); });
       } else {
-        chunkLine(line, 0, true, pw, enFontSpec).forEach(c => { for (let r=0;r<repeat;r++) exp.push(c); });
+        chunkLine(line, 0, true, enMaxPx, enFontSpec).forEach(c => { for (let r=0;r<repeat;r++) exp.push(c); });
       }
     });
 
@@ -1066,18 +1115,41 @@
     // Keep fm-list previews as font name (don't override)
   });
 
-  $('locale').addEventListener('input', () => { initFontForLocale(); render(); });
-  ['input-text','text-color','cell-height','cell-width','repeat-rows','text-y-offset','text-font-size'].forEach(id => {
-    $(id).addEventListener('input', render);
+  let _prevLocale = $('locale').value;
+  $('locale').addEventListener('input', () => {
+    saveSettings(_prevLocale);           // save old locale before switching
+    _prevLocale = $('locale').value;
+    initFontForLocale(true);             // restore settings for new locale
+    render();
+  });
+
+  // Base ratio: fontSize 49 / height 56
+  const BASE_HEIGHT = 56;
+  const BASE_FONTSIZE = 49;
+
+  $('cell-height').addEventListener('input', () => {
+    const locale = $('locale').value;
+    const h = parseInt($('cell-height').value) || BASE_HEIGHT;
+    if (locale === 'en') {
+      const fs = Math.round(BASE_FONTSIZE * h / BASE_HEIGHT);
+      $('text-font-size').value = fs;
+    }
+    saveSettings(locale); render();
+  });
+
+  $('text-font-size').addEventListener('input', () => { saveSettings($('locale').value); render(); });
+
+  ['input-text','text-color','cell-width','repeat-rows','text-y-offset'].forEach(id => {
+    $(id).addEventListener('input', () => { saveSettings($('locale').value); render(); });
   });
   $('alpha').addEventListener('input', () => {
     $('alpha-value').textContent = $('alpha').value + '%';
-    render();
+    saveSettings($('locale').value); render();
   });
   $('btn-print').onclick = () => window.print();
 
   // ── Init ──────────────────────────────────────────────────────────────────
-  initFontForLocale();
+  initFontForLocale(true);   // restore last session settings
   render();
 
   // ── Mobile tabs & paper scaling ──────────────────────────────────────────
