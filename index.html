@@ -424,7 +424,7 @@
 
 <!-- ── Sidebar ── -->
 <div id="sidebar">
-  <h1>✏️ Writing Practice<span class="version">v1.0.1</span></h1>
+  <h1>✏️ Writing Practice<span class="version">v1.0.2</span></h1>
 
   <div class="field">
     <label>Locale</label>
@@ -593,6 +593,7 @@
   // ── localStorage ──────────────────────────────────────────────────────────
   const LS       = loc => `wp_fonts_${loc}`;
   const LS_SETTINGS = loc => `wp_settings_${loc}`;
+  const LS_LOCALE = 'wp_locale';
 
   const DEFAULT_FONTS = {
     en: ['Kalam'],
@@ -1123,10 +1124,19 @@
     // Keep fm-list previews as font name (don't override)
   });
 
+  // Restore last-selected locale from a previous session
+  try {
+    const savedLocale = localStorage.getItem(LS_LOCALE);
+    if (savedLocale && [...$('locale').options].some(o => o.value === savedLocale)) {
+      $('locale').value = savedLocale;
+    }
+  } catch {}
+
   let _prevLocale = $('locale').value;
   $('locale').addEventListener('input', () => {
     saveSettings(_prevLocale);           // save old locale before switching
     _prevLocale = $('locale').value;
+    try { localStorage.setItem(LS_LOCALE, _prevLocale); } catch {}
     initFontForLocale(true);             // restore settings for new locale
     render();
   });
