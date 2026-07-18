@@ -159,6 +159,7 @@
     .ko-cell::before, .ko-cell::after {
       content: ''; position: absolute;
       background: rgba(229,57,53,0.25); pointer-events: none;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
     }
     .ko-cell::before { width: 1px; top: 0; bottom: 0; left: 50%; transform: translateX(-50%); }
     .ko-cell::after  { height: 1px; left: 0; right: 0; top: 50%; transform: translateY(-50%); }
@@ -389,20 +390,26 @@
     }
 
     /* ── Print ── */
+    /* A4 @96dpi = 794×1123px. margin:0 lets the fixed-px page map 1:1 to the
+       sheet, so the grid keeps the exact geometry it has in the preview. */
+    @page { size: A4; margin: 0; }
     @media print {
       body { background: #fff; display: block; }
+      .paper-page, .ko-row, .ko-cell, .ko-cell::before, .ko-cell::after {
+        -webkit-print-color-adjust: exact; print-color-adjust: exact;
+      }
       #sidebar, #font-modal-overlay, #ctx-menu, #toast { display: none !important; }
       #mobile-tabs { display: none !important; }
       #preview-area { display: block; padding: 0; overflow: visible; }
       #preview-label { display: none; }
-      #paper-container { width: 100%; }
+      #paper-container { width: auto; }
       .paper-page {
-        width: 100%; height: 100vh; padding: 15mm 15mm 10mm;
-        box-shadow: none; border-radius: 0; margin-bottom: 0; page-break-after: always;
-        overflow: visible;
+        width: 794px; height: 1123px; padding: 48px 60px 40px;
+        box-shadow: none; border-radius: 0; margin: 0; page-break-after: always;
+        overflow: hidden;
       }
       .paper-page:last-child { page-break-after: avoid; }
-      .paper-content { overflow: visible; }
+      .paper-content { overflow: hidden; }
     }
   </style>
 </head>
